@@ -1924,3 +1924,10 @@ h3.text-align-center {
     border: 1px solid transparent;
     border-radius: 4px;
 }
+
+@media (max-width: 560px) {
+    .navbar>.container .bac-header,
+    .navbar>.container-fluid .bac-header {
+        margin-bottom: -10px !important;
+    }
+}
