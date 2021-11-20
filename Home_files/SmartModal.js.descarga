@@ -1,0 +1,82 @@
+﻿
+// ------------------------------- BUTTON JSON ARRAY (FOR SETTINGS.BUTTONS)
+//[{
+//    "id": "some-id",
+//    "type": "onclick", // Possible values: onclick, redirect, dismiss, submit.
+//    "fnClick": "someFn()", // Any function to execute onclick (only if type == onclick).
+//    "redirectUrl": "/some/url", // Any url to redirect to (only if type == redirect).
+//    "class": "btn btn-default", // Button class.
+//    "text": "Some text" // Button text.
+//    "formId": "some-form-id" // Form to submit (only if type == submit)
+//}]
+
+(function ($) {
+    $.SmartModal = function (settings, callback) {
+
+        settings = $.extend({
+            container: "#container-modal",
+            header: "",
+            content: "",
+            fnSubmit: undefined,
+            buttons: undefined,
+            modalId: undefined
+        }, settings);
+
+        var footer = "";
+        if (settings.buttons) {
+            $.each(settings.buttons, function (i, button) {
+                
+                if (button.type == "onclick") {
+                    footer += '<button type="button" class="' + button.class + '" onclick="' + button.fnClick + '">' + button.text + '</button>';
+                }
+                else if (button.type == "redirect") {
+                    footer += '<a class="' + button.class + '" href="' + button.redirectUrl + '">' + button.text + '</a>';
+                }
+                else if (button.type == "dismiss") {
+                    footer += '<button type="button" class="' + button.class + ' pull-left" data-dismiss="modal">' + button.text + '</button>';
+                }
+                else if (button.type == "submit") {
+                    footer += '<button type="button" class="' + button.class + '" onclick="$(\'#' + button.formId + '\').submit();" data-dismiss="modal">' + button.text + '</button>';
+                }
+                
+            });
+        }
+        else {
+            footer += '<button type="button" class="btn btn-default" data-dismiss="modal">Aceptar</button>';
+        }
+
+        createModal(settings.modalId, settings.container, settings.header, settings.content, footer);
+
+        //$.each(settings.buttons, function (i, button) {
+        //    if (button.type == "submit") {
+        //        $('#' + settings.modalId).on('hidden.bs.modal', function () {
+
+        //            $('#' + button.formId).submit();
+        //        })
+        //    }
+        //});
+    }
+})(jQuery);
+
+
+function createModal(modalId, container, header, content, footer) {
+    var html = '<div id="' + modalId + '" class="modal fade" tabindex="-1" role="dialog">';
+    html += '<div class="modal-dialog" role="document">';
+    html += '<div class="modal-content">';
+    html += '<div class="modal-header">';
+    html += '<a class="close" data-dismiss="modal">×</a>';
+    html += '<h4>' + header + '</h4>'
+    html += '</div>';
+    html += '<div class="modal-body">';
+    html += '<p>';
+    html += content;
+    html += '</p>';
+    html += '</div>';
+    html += '<div class="modal-footer">';
+    html += footer
+    html += '</div>';  // footer
+    html += '</div>';  // modal-content
+    html += '</div>';  // modal-dialog
+    html += '</div>';  // modalWindow
+    $(container).html(html);
+}

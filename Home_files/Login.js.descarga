@@ -1,0 +1,77 @@
+﻿$(function () {
+
+    $("#btnRegistrarme").on("click", function (event) {
+
+        event.preventDefault();
+        BloquearPantalla();
+        window.open('/Registrante/Register','_self');
+    })
+
+    // Creo llamada a la accion que recupera contraseña
+    $("#btnRecuperarContrasenia").on("click", function (event) {
+
+            if ($("#frmRecuperarContrasenia").valid() === false)
+            {
+                return false;
+            }
+
+            if (validateRecaptcha(event) === false)
+            {
+                return false;
+            }
+
+            //Pasó las validaciones
+
+            var email_Address = $("#Email").val();
+            var endpoint = $("#frmRecuperarContrasenia").attr("action");
+            var grecaptcharesponse = $("[name='g-recaptcha-response']").val();
+
+            $.ajax({
+                url: endpoint,
+                type: 'GET',
+                data: { email: email_Address, grecaptcharesponse: grecaptcharesponse },
+                dataType: "json",
+                beforeSend: function () {
+                    BloquearPantalla();
+                },
+                success: function (data, textStatus) {
+
+                    DesbloquearPantalla();
+                    grecaptcha.reset();                   
+
+                    $("#alerta").removeAttr("class");
+
+                    if (data.result == "success") {
+                        $("#alerta").addClass("alert adjusted alert-success fade in");
+                    };
+
+                    if (data.result == "warning") {
+                        $("#alerta").addClass("alert adjusted alert-warning fade in");
+                    };
+
+                    if (data.result == "error") {
+                        $("#alerta").addClass("alert adjusted alert-danger fade in");
+                    };
+
+                    $("#mensaje").html(data.message);
+                    $("#alerta").removeAttr("hidden");
+                    $(".close").remove();
+                },
+                error: function (data) {
+
+                    DesbloquearPantalla();
+                    grecaptcha.reset();
+
+                    $("#alerta").addClass("alert adjusted alert-danger fade in");
+                    $("#mensaje").text("Ha ocurrido un error al intentar realizar la operación. Por favor vuelva a intentarlo más tarde.");
+                    $("#alerta").removeAttr("hidden");
+                    $(".close").remove();
+                }
+            });
+
+            return false;
+        });
+});
+
+
+

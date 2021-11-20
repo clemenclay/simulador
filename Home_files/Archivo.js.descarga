@@ -1,0 +1,372 @@
+﻿$(function () {
+
+    if (window.Dropzone !== undefined) {
+        Dropzone.autoDiscover = false;
+
+        instanciarDropzones($(".dropzone-container"));
+    }
+
+});
+
+function generarDropzone(container, element, myfile) {
+
+    var myDrop = container.find("#" + element.id);
+    myDrop.dropzone({
+        url: "/Archivo/UploadFile",
+        maxFiles: 1,
+        addRemoveLinks: true,
+        maxFilesize: 15.01, //Tamaño en MB
+        dictCancelUpload: "",
+        dictRemoveFile: "Borrar",
+        thumbnailWidth: 180,
+        thumbnailHeight: 180,
+        acceptedFiles: ".pdf,.jpg,.jpeg,.png,.bmp", //Extensiones de archivos que soportan los dropzones
+        success: function (file, response) {
+
+            var archivo = response.files[0];
+
+            if (archivo !== undefined && archivo.SavedFileName !== undefined) {
+                
+                file.previewElement.appendChild($("<input>", {
+                    "type": "hidden",
+                    "name": "archivosNuevos",
+                    "value": element.id + "**" + archivo.SavedFileName
+                }).get(0));
+
+
+                file.previewElement.classList.add("dz-success");
+                file.previewElement.id = archivo.SavedFileName;
+                file.deleteUrl = archivo.deleteUrl
+
+                myDrop.get(0).dropzone.createThumbnailFromUrl(file, archivo.thumbnailUrl);
+                myDrop.get(0).dropzone.completed();
+                myDrop.find(".dz-remove").show();
+
+                var LinkDropzone = $("<a>", {
+                    "href": archivo.url,
+                    "class": "btn btn-default pull-right header-btn botonDownload",
+                    "data-toggle": 'lightbox',
+                    'title': ' Descargar',
+                    "download": "download",
+                    "id": "botonDownload"
+                }).get(0);
+
+                file.previewElement.appendChild(LinkDropzone);
+            }
+            else {
+                myDrop.get(0).dropzone.files = myDrop.get(0).dropzone.files.splice(1, 1);
+                file.previewElement.classList.add("dz-error");
+                myDrop.find(".dz-error").fadeOut("fast", function () {
+                    myDrop.find(".dz-error").remove();
+                });
+                alert("Hubo un error en la carga de archivos, reintente");
+            }
+
+        },
+        sending: function (file, xhr, containerData) {
+            containerData.append("fileId", element.id + "**" + file.name);
+            myDrop.find(".dz-remove").hide();
+        },
+        error: function (file, response) {
+
+            if (response === "You can't upload files of this type.") {
+                alert("Extensión de archivo no permitida");
+            }
+
+            if (response === "You can not upload any more files.") {
+                alert("No se permite más de 1 archivo");
+            }
+
+            if (response === "Server responded with 0 code.") {
+                alert("Hay problemas de conexión");
+            }
+           
+            if (response.indexOf("File is too big") != -1)
+            {
+                alert("El archivo debe pesar 15 Mb o menos");
+            }
+
+            file.previewElement.classList.add("dz-error");
+            myDrop.find(".dz-error").remove();
+        },
+        maxfilesexceeded: function () {
+            myDrop.get(0).dropzone.files.splice(1, 1);
+        },
+        removedfile: function (file) {
+            var files = myDrop.get(0).dropzone.files;
+            $.SmartMessageBox({
+                title: "<i class='fa fa-trash-o' style='color:red'></i> Archivo",
+                content: "Seguro que desea eliminar el archivo?",
+                buttons: '[No][Si]'
+
+            }, function (ButtonPressed) {
+                if (ButtonPressed == "Si") {
+                    file.previewElement.classList.add("dz-error");
+                    myDrop.find(".dz-error").fadeOut("fast", function () {
+                        myDrop.find(".dz-error").remove();
+                    });
+                    if (file.deleteUrl !== undefined) {
+                        $.post(file.deleteUrl);
+                    }
+                }
+
+                if (ButtonPressed == "No") {
+                    files.push(file);
+                }
+            });
+        }
+    });
+
+    //Setear el archivo, usado en el edit/failed postback
+    if (myfile !== undefined) {
+        var myDropzone = myDrop.get(0).dropzone;
+
+        var file = {
+            name: myfile.Nombre,
+            status: Dropzone.ADDED,
+            accepted: true
+        };
+
+        myDropzone.emit("addedfile", file);
+        myDropzone.createThumbnailFromUrl(file, myfile.Thumbnails);
+        myDropzone.emit("complete", file);
+        myDropzone.files.push(file);
+
+        if (myfile.Estado === "Adjunto") {
+            file.previewElement.appendChild($("<input>", {
+                "type": "hidden",
+                "name": "archivos",
+                "value": myfile.Id
+            }).get(0));
+
+            var LinkDropzone = $("<a>",{
+                    "href": myfile.LinkDownload,
+                    "class": "btn btn-default pull-right header-btn botonDownload",
+                    "data-toggle": 'lightbox',
+                    'title': ' Descargar',
+                    "download": "download",
+                     "id": "botonDownload"
+                }).get(0);
+
+            file.previewElement.appendChild(LinkDropzone);
+
+            myDrop.find("img").css({ 'width': '100%' });
+            myDrop.find(".dz-size").remove();
+
+        } else if (myfile.Estado === "Invalido") {
+            file.previewElement.appendChild($("<input>", {
+                "type": "hidden",
+                "name": "archivosNuevos",
+                "value": element.id + "**" + myfile.Nombre
+            }).get(0));
+        }
+
+    }
+
+    //Para deshabilitar los dropzones (no permitir que sean borrados)
+    if (container.find("#disableDrops").length !== 0)
+    {
+        myDrop.find(".dz-remove").remove();
+        myDrop.find(".dz-default").css( 'cursor', 'default' );
+        myDrop.css( 'cursor', 'default' );
+        myDrop.removeClass("fondo-dropzone");
+        myDrop.get(0).dropzone.removeEventListeners();
+    }
+
+    //Para deshabilitar los dropzones especificos de la vista renovacion
+    if (container.find("#renovacion").length !== 0)
+    {
+        var ids = [
+            "TituloOCedulaVerdeFrente",
+            "TituloOCedulaVerdeDorso",
+            "DNITitularFrente",
+            "DNITitularDorso",
+            "ConstanciaCuitOCuilFisico",
+            "EstatutoEmpresaTitular",
+            "ConstanciaCuitJuridico",
+            "DNIPresidenteOSocioFrente",
+            "DNIPresidenteOSocioDorso",
+            "ComprobanteInscripcionREGOTAVU",
+            "ComprobantePagoREGOTAVU",
+            "CertCalidadAmbiental"
+        ]
+
+        if (ids.includes(myDrop.prop("id"))) {
+            myDrop.find(".dz-remove").remove();
+            myDrop.find(".dz-default").css('cursor', 'default');
+            myDrop.css('cursor', 'default');
+            myDrop.removeClass("fondo-dropzone");
+            myDrop.get(0).dropzone.removeEventListeners();
+        }
+    }
+
+    //Método usado para activar la validación (en caso de que el archivo sea requerido)
+    myDrop.get(0).dropzone.completed = function () {
+
+        var id = myDrop.prop("id");
+
+        if (myDrop.find("input[name='archivosNuevos'],[name='archivos']").length > 0) {
+
+            $("#validation" + id).fadeOut();
+            return true;
+        } else {
+
+            $("#validation" + id).fadeIn();
+            window.location.hash = id;
+            return false;
+        }
+    };
+
+    myDrop.get(0).dropzone.isEmpty = function () {
+
+        if (myDrop.find("input[name='archivosNuevos'],[name='archivos']").length > 0) {
+
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    myDrop.on({
+        mouseenter: function () {
+            myDrop.find("[download=download]").fadeIn("fast");
+        },
+        mouseleave: function () {
+            myDrop.find("[download=download]").fadeOut("fast");
+        }
+    });
+}
+
+function instanciarDropzones(container,fnCallback) {
+
+    var notFiles = true;
+    var archivosEdit = [];
+    var archivosInvalid = [];
+
+    if (container.find("#esEdit").length !== 0) {
+        archivosEdit = $("[data-esedit]").get().map(function (obj) {
+            return {
+                id: obj.dataset.dropzone,
+                value: obj.value
+            }
+        });
+
+        notFiles = false;
+    }
+
+    if (container.find("#invalidModel").length !== 0) {
+        archivosInvalid = $("[data-invalid]").get().map(function (obj) {
+            return {
+                id: obj.dataset.dropzone,
+                value: obj.value
+            }
+        });
+
+        notFiles = false;
+    }
+
+    if (!notFiles) {
+        archivosEdit = archivosEdit.filter(function (obj) {
+            return archivosInvalid.map(function (elem) { return elem.id }).indexOf(obj.id) === -1;
+        });
+
+        var archivosTraer = archivosEdit.map(function (elem) { return elem.value; })
+        var archivosCache = archivosInvalid.map(function (elem) { return elem.value; })
+
+        $.when(
+            //Trae los archivos adjuntos
+           $.ajax({
+               url: '/Archivo/_GetArchivosAdjuntos',
+               data: {
+                   "archivos": archivosTraer
+               },
+               type: 'POST',
+               traditional: true,
+               dataType: "json",
+               beforeSend: function () {
+                   BloquearPantalla();
+               },
+               success: function (data) {
+                   var files = data.files;
+                   DesbloquearPantalla();
+                   archivosEdit = files;
+               },
+               error: function () {
+                   alert("Error, no se pudieron traer los archivos asociados");
+                   DesbloquearPantalla();
+               }
+           }),
+
+           //Trae los archivos si el modelo no pasó la validación
+           $.ajax({
+               url: '/Archivo/GetFilesInCache',
+               data: {
+                   "archivosCache": archivosCache
+               },
+               traditional: true,
+               type: "POST",
+               cache: false,
+               beforeSend: function () {
+                   BloquearPantalla();
+               },
+               success: function (data) {
+                   DesbloquearPantalla();
+                   archivosCache = data.files;
+               },
+               error: function () {
+                   alert("Error, no se pudieron traer los archivos seleccionados");
+                   DesbloquearPantalla();
+               }
+           })
+
+            ).done(function () {
+                var files = archivosEdit.concat(archivosCache)
+                if (files.length !== 0) {
+
+                    container.find(".one-drop").get().forEach(function (element) {
+
+                        var file = getFileById(element.id, files);
+                        if (file) {
+                            generarDropzone(container, element, file);
+                        } else {
+                            generarDropzone(container, element);
+                        }
+                    });
+
+                } else {
+
+                    container.find(".one-drop").get().forEach(function (element) {
+                        generarDropzone(container, element);
+                    });
+                }
+
+                if (fnCallback !== undefined) {
+                    fnCallback();
+                }
+            });
+    } else {
+        container.find(".one-drop").get().forEach(function (element) {
+            generarDropzone(container, element);
+        });
+
+        if (fnCallback !== undefined) {
+            fnCallback();
+        }
+    }
+
+}
+
+function getFileById(id, files) {
+
+    var auxfile = false;
+    if (files.length !== 0) {
+        files.forEach(function (file, i) {
+            if (file.TipoDropzone === id) {
+                auxfile = file;
+            }
+        })
+    }
+    return auxfile;
+}
+
+

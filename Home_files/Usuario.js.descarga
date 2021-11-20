@@ -1,0 +1,48 @@
+﻿$(function () {
+
+    var checked = getParameterByName('verEliminados') == '' ? 'false' : getParameterByName('verEliminados');
+    if (checked == 'true')
+    {
+        $('#mostrar_eliminados').attr('checked', 'checked');
+    }
+
+    //Para inicializar btnSmartModals al cambiar de pagina o filtrar.
+    $('#dt_basic').on('draw.dt', addBtnSmartMessageBox);
+})
+
+$(".btnEliminarUsuario").click(function () {
+    var id = $(this).data("id");
+    var username = $(this).data("nombre");
+    $.SmartMessageBox({
+        title: '<i class="fa fa-trash-o" style="color:red"></i> Eliminar usuario "' + username + '"?',
+        content: 'Presione "SI" para eliminar al usuario del sistema.',
+        buttons: '[No][Si]'
+
+    }, function (ButtonPressed) {
+        if (ButtonPressed == "Si") {
+            $.ajax({
+                type: 'POST',
+                data: { idUsuario: id },
+                url: '/Usuario/DeregisterConfirm',
+                success: function (result) {
+                    if (result.resultado == "success") {
+                        location.reload();
+                    } else {
+                        alert(result.mensaje);
+                    }
+                }
+            });
+        }
+    });
+});
+
+
+$('#mostrar_eliminados').change(function () {
+    window.location.href = "/Usuario/Index?verEliminados=" + $(this).is(":checked");
+});
+
+$(function () {
+    if ($("#EditSuccess").length !== 0) {
+        alert("Usuario editado con éxito");
+    }
+})

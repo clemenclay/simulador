@@ -1,0 +1,334 @@
+﻿function streetView(coorX, coorY) {
+
+    $('#map-wrapper').fadeIn('fast');
+
+    var fenway = new google.maps.LatLng(coorY, coorX);
+
+    // Note: constructed panorama objects have visible: true
+    // set by default.
+    var panoOptions = {
+        position: fenway,
+        addressControlOptions: {
+            position: google.maps.ControlPosition.BOTTOM_CENTER
+        },
+        linksControl: false,
+        panControl: false,
+        zoomControlOptions: {
+            style: google.maps.ZoomControlStyle.SMALL
+        },
+        enableCloseButton: false
+    };
+
+    var panorama = new google.maps.StreetViewPanorama(
+        document.getElementById('map-canvas'), panoOptions);
+
+    //Botón de 'Cerrar'
+    var centerControlDiv = document.createElement('div');
+    var centerControl = new CenterControl(centerControlDiv, panorama,"panoramaModal");
+    centerControlDiv.index = 1;
+    panorama.controls[google.maps.ControlPosition.TOP_CENTER].push(centerControlDiv);
+
+    //Disparo resize del panorama cuando se muestra el modal 
+    // para evitar partes del mapa en gris
+    $("#panoramaModal").on("shown.bs.modal", function () {
+        google.maps.event.trigger(panorama, "resize");
+
+    });
+
+    //Mostrar Modal
+    $("#panoramaModal").modal();
+
+}
+
+
+
+function minimizarStreetView() {
+
+    $('#map-wrapper').fadeOut('fast');
+
+}
+
+function streetViewSeleccionar(coorX, coorY) {
+    $('#cerrar-modal').fadeOut('fast');
+    $('#map-wrapper-seleccionar').fadeIn('fast');
+    $('#ubicacion-botonera').fadeOut('fast');
+    $('#seleccionar-ubicacion-wrapper').fadeOut('fast');
+    $('#btn-volver-paso3').fadeOut('fast');
+    $('#btn-finalizar').fadeOut('fast');
+
+    var fenway = new google.maps.LatLng(coorY, coorX);
+
+    // Note: constructed panorama objects have visible: true
+    // set by default.
+    var panoOptions = {
+        position: fenway,
+        addressControlOptions: {
+            position: google.maps.ControlPosition.BOTTOM_CENTER
+        },
+        linksControl: false,
+        panControl: false,
+        zoomControlOptions: {
+            style: google.maps.ZoomControlStyle.SMALL
+        },
+        enableCloseButton: false
+    };
+
+    var panorama = new google.maps.StreetViewPanorama(
+        document.getElementById('map-canvas-seleccionar'), panoOptions);
+}
+
+function minimizarStreetViewSeleccionar() {
+    $('#cerrar-modal').fadeIn('fast');
+    $('#map-wrapper-seleccionar').fadeOut('fast');
+    $('#seleccionar-ubicacion-wrapper').fadeIn('fast');
+    $('#btn-volver-paso3').fadeIn('fast');
+    $('#btn-finalizar').fadeIn('fast');
+    $('#ubicacion-botonera').fadeIn('fast');
+}
+
+var map;
+var panorama;
+var markers = [];
+var markersId = [];
+var infowindows = [];
+var enableAddMarkerFromPano;
+
+function initializeMaps() {
+
+    map = new google.maps.Map(document.getElementById('map-canvas'), {
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        streetViewControl: false,
+        zoomControl: false,
+        mapTypeControl: false,
+        scaleControl: false,
+        rotateControl: false
+    });
+
+    if (navigator.geolocation) {
+
+        navigator.geolocation.getCurrentPosition(function (position) {
+            initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+            map.setCenter(initialLocation);
+            map.setZoom(12);
+        },
+        function (error) {
+            // Por defecto tomo la ubicación de Buenos Aires
+            initialLocation = new google.maps.LatLng(-34.603722, -58.381592);
+            map.setCenter(initialLocation);
+            map.setZoom(10);
+        });
+
+    }
+
+    addMarkers();
+
+}
+
+
+function addMarkerFromLatLng(latLng, radio, infoWindowContent) {
+
+    // Borro los markers anteriores
+    //deleteAllMarkers();
+
+    markers = [];
+    var bounds = new google.maps.LatLngBounds();
+
+    // Creo el nuevo marker
+    var marker = new google.maps.Marker({
+        position: latLng,
+        draggable: false
+    });
+    marker.setMap(map);
+    markers.push(marker);
+
+    bounds.extend(marker.position);
+
+    if (radio) {
+        
+        var circle = new google.maps.Circle({
+            map: map,
+            radius: radio,    
+            strokeColor: '#266E94',
+            strokeOpacity: 0.01,
+            strokeWeight: 2,
+            fillColor: '#266E94',
+            fillOpacity: 0.35,
+        });
+        circle.bindTo('center', marker, 'position');
+    }
+
+    if (infoWindowContent) {
+        var infowindow = new google.maps.InfoWindow({
+            content: infoWindowContent
+        });
+        infowindow.open(map, marker);
+
+        google.maps.event.addListener(marker, 'click', function () {
+            infowindow.open(map, this);
+        });
+        infowindows.push(infowindow);
+    }
+
+    //map.fitBounds(bounds);
+
+    //map.setCenter(latLng);
+}
+
+function deleteAllMarkers() {
+    for (var i = 0, marker; marker = markers[i]; i++) {
+        marker.setMap(null);
+    }
+}
+
+function deleteAllInfowindows() {
+    for (var i = 0, infowindow; infowindow = infowindows[i]; i++) {
+        infowindow.close();
+    }
+}
+
+function addMarkers() {
+    var markersJson = JSON.parse($("#markers-json").val());
+    map.controls[google.maps.ControlPosition.RIGHT_TOP].push(document.getElementById('legend'));
+    for (var i = 0, marker; marker = markersJson[i]; i++) {
+        
+        addMarker(marker);
+    }
+    addLegend(markersJson);
+}
+
+function addMarker(markerJson) {
+    var latLng = new google.maps.LatLng(markerJson.Latitud, markerJson.Longitud);
+
+    var bounds = new google.maps.LatLngBounds();
+
+    // Creo el nuevo marker
+    var marker = new google.maps.Marker({
+        position: latLng,
+        draggable: false
+    });
+    marker.setMap(map);
+    markers.push(marker);
+
+    bounds.extend(marker.position);
+
+    var circle = null;
+    if (markerJson.Radio) {
+
+        circle = new google.maps.Circle({
+            map: map,
+            radius: markerJson.Radio,
+            strokeColor: '#266E94',
+            strokeOpacity: 0.15,
+            strokeWeight: 2,
+            fillColor: '#266E94',
+            fillOpacity: 0.10,
+        });
+        circle.bindTo('center', marker, 'position');
+    }
+
+    if (markerJson.InfoWindowContent) {
+        var infowindow = new google.maps.InfoWindow({
+            content: markerJson.InfoWindowContent
+        });
+        //infowindow.open(map, marker);
+
+        google.maps.event.addListener(marker, 'click', function () {
+            infowindow.open(map, this);
+        });
+
+        infowindows.push(infowindow);
+    }
+
+    if (markerJson.Leyenda)
+    {
+        var markerId = { marker: marker, id: markerJson.Identificador, circle: circle };
+        markersId.push(markerId);
+
+        addLegend(markerJson, markerJson.Identificador);
+    }
+}
+
+function addLegend(marker, identificador) {
+    
+    var legend = document.getElementById('legend-items');
+   
+    if (marker.Leyenda) {
+        var name = marker.Leyenda;
+        var div = document.createElement('div');
+
+        div.className = "map-legend-item"
+        var func = "toggleMarcador(\"" + identificador + "\");";
+        div.innerHTML = "<label class='checkbox'><input type='checkbox' class='pull-left' checked='' onclick='" + func + "' id='chk-" + identificador + "' /><i></i>" + name + "</label>";
+        //div.innerHTML = "<a onclick='"+ func +"'>" + icon + name + "</a>";
+        legend.appendChild(div);
+    }
+}
+
+function toggleMarcador(identificador) {
+    var visible = true;
+    for (var i = 0, markerId; markerId = markersId[i]; i++) {
+        if (markerId.id == identificador) {
+            if (markerId.marker.visible) {
+                visible = false;
+            }
+            markerId.marker.setVisible(visible);
+            if (markerId.circle) {
+                markerId.circle.setVisible(visible);
+            }
+        }
+    }
+}
+
+function toggleAllMarkers(element) {
+    var visible = element.checked;
+    for (var i = 0, markerId; markerId = markersId[i]; i++) {
+        //if (markerId.marker.visible) {
+        //    visible = false;
+        //}
+        //visible = !markerId.marker.visible;
+        markerId.marker.setVisible(visible);
+        if (markerId.circle) {
+            markerId.circle.setVisible(visible);
+        }
+    }
+
+    var checks = document.querySelectorAll('#legend input[type="checkbox"]');
+    for (var i = 0; i < checks.length; i++) {
+        var check = checks[i];
+        if (!check.disabled) {
+            check.checked = visible;
+        }
+    }
+}
+
+//Center Control
+function CenterControl(controlDiv, map,iddivacerrar) {
+
+    // CSS para el control externo
+    var controlUI = document.createElement('div');
+    controlUI.style.backgroundColor = 'rgba(0, 0, 0, 0.78)';
+    controlUI.style.borderRadius = '3px';
+    controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+    controlUI.style.cursor = 'pointer';
+    controlUI.style.marginBottom = '22px';
+    controlUI.style.textAlign = 'center';
+    controlUI.style.marginTop = '10px';
+    controlUI.title = 'Cerrar Google Panorama';
+    controlDiv.appendChild(controlUI);
+
+    // CSS para el control interno
+    var controlText = document.createElement('div');
+    controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+    controlText.style.fontSize = '16px';
+    controlText.style.lineHeight = '25px';
+    controlText.style.paddingLeft = '5px';
+    controlText.style.paddingRight = '5px';
+    controlText.innerHTML = '<span style="color:white;text-shadow: 0px 2px 3px black;padding: 10px;">Cerrar</span>';
+    controlUI.appendChild(controlText);
+
+    
+    controlUI.addEventListener('click', function () {
+        $("#"+iddivacerrar).modal('hide');
+    });
+
+}

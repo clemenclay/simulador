@@ -1,0 +1,1697 @@
+﻿// en app.js se modifica el width para que no muestre version mobile
+
+//  $('#main').resize(function () {
+
+//    if ($(window).width() < 9) {
+//        $.root_.addClass('mobile-view-activated');
+//        $.root_.removeClass('minified');
+//    } else if ($.root_.hasClass('mobile-view-activated')) {
+//        $.root_.removeClass('mobile-view-activated');
+//    }
+
+//  });
+
+
+
+// en app.js se comento para que funcionen las noticias
+
+//$('input[name="activity"]').change(function() {
+//	//alert($(this).val())
+//	var $this = $(this);
+
+//	url = $this.attr('id');
+//	container = $('.ajax-notifications');
+
+//	loadURL(url, container);
+
+//	//clear memory reference
+//	$this = null;		
+//});
+
+
+$(document).ready(function () {
+
+    $('form').submit(function () {
+        if ($(this).valid()) {
+            BloquearPantalla();
+        }
+    });
+
+    window.onbeforeunload = function () { BloquearPantalla(); }
+
+    $(function () {
+        initializeMultiselect2();
+        initializeMultiselect2Client();
+        inicializarSelectYMultiselect();
+        initializeSelect2();
+        initializeDataTable();
+        inicializarDataTable();
+        initializeDatePicker();
+        initializeCustomAlerts();
+        initializeMaxLengthTextArea();
+        
+        validarMaxLenght();
+        $(window).bind("load", function () {
+            addBtnSmartMessageBox();
+        });
+        replaceDateValidation();
+
+        $('.expanding').each(function () {
+            $(this).expanding();
+        });
+        improveNumberValidation();
+        impedirBack();
+        prevenirMultiplesClicks();
+        $('#btn-volver-atras').click(function () {
+            location.replace(document.referrer);
+        });
+
+        initializeSmartModal();
+        UpperCase();
+        restringirCaracteres();
+        DesbloquearPantalla();
+        setPanelsHeight();
+        salvarBugsModales();
+
+        $('.dtSearch').click(function () {
+            var e = $.Event("keypress");
+            e.keyCode = 13;
+            $('[placeholder="Buscar"]').trigger(e);
+        });
+
+        btnExportarResultadosInspeccion();
+        btnExportarInspeccionesPlanificadas();
+        //$("#datetime").datetimepicker();
+        $("#btn-descargar-detalle").on("click", exportarExcelSolicitudDetalles).fadeIn();
+    });
+});
+function restringirCaracteres() {
+    //Evito que el usuario ingrese caracteres especiales en el dominio de vehiculo
+    $('#textbox-dominio, #filter-dominio, #CodigoPostal').keypress(function (e) {
+        var rex = new RegExp("[a-zA-Z0-9]");
+        var value = e.which;
+        var esEnter = value === 13;
+        value = String.fromCharCode(value);
+        if (!rex.test(value)) {
+            if (!esEnter) {
+                e.preventDefault();
+            }
+        }
+    });
+}
+
+function UpperCase() {
+    $(".toUpperCase").keyup(function () {
+        this.value = this.value.toUpperCase();
+    });
+}
+
+function inicializarSelectYMultiselect() {
+    $('.tag-select').each(function () {
+
+        id = $(this).attr("id").toString();
+
+        if ($(this).data("defaultval")) {
+            $("#" + id).val($(this).data("defaultval"));
+        }
+
+        if ($(this).data("noval")) {
+            $("#" + id).prepend(
+                    $('<option></option>').val("0").html($(this).data("noval"))
+                );
+        }
+
+        if ($(this).attr("data-action") != null) {
+            url = $(this).attr("data-action").toString();
+            $(this).children('option').prop('selected', true);
+            if ($(this).children('option') == null && $(this).attr("multiple") == null)
+                $("#" + id).append('<option value=0>Elija una opcion</option>');
+            if ($(this).attr("maxselected") != null) {
+                maxselected = $(this).attr("maxselected");
+                $(this).chosen({
+                    width: '100%',
+                    max_selected_options: maxselected,
+                    allow_single_deselect: true,
+                    disable_search_threshold: -1
+                });
+            } else {
+                $(this).chosen({
+                    width: '100%',
+                    allow_single_deselect: true,
+                    disable_search_threshold: -1
+
+                });
+            }
+            initializeChosenAjax(id, url);
+        } else {
+            $("#" + id).chosen({
+                width: '100%',
+                allow_single_deselect: true
+            });
+        }
+
+
+
+    })
+}
+
+
+
+
+function initializeChosenAjax(id, url) {
+    $("#" + id).ajaxChosen({
+        type: 'POST',
+        url: url,
+        dataType: 'json'
+    }, function (data) {
+        var results = [];
+
+        $.each(data, function (i, val) {
+            results.push({ value: val.id, text: val.name });
+        });
+
+        return results;
+    });
+}
+
+function prevenirMultiplesClicks() {
+    $('.prevent_doubleclick').click(function (e) {
+        if ($(this).hasClass('clicked')) {
+            e.preventDefault();
+        } else {
+            $(this).addClass('clicked');
+            var link = $(this);
+            setTimeout(function () {
+                link.removeClass('clicked')
+            }, 4000);
+            return true;
+        }
+    });
+}
+
+function improveNumberValidation() {
+    $('input[type=number]').each(function () {
+        $(this).attr('min', '0');
+        $(this).attr('onkeypress', 'return isNumber(event)');
+    });
+}
+
+function impedirBack() {
+    history.pushState({ page: 1 }, "title 1", "#nbb");
+    window.onhashchange = function (event) {
+        window.location.hash = "nbb";
+
+    };
+}
+
+function isNumber(evt) {
+    evt = (evt) ? evt : window.event;
+    var charCode = (evt.which) ? evt.which : evt.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+        return false;
+    }
+    return true;
+}
+
+function bloquearWizard() {
+    alert('Reemplazar por llamada a BloquearPantalla()');
+}
+
+function quitarBackgroundOscuro() {
+    $('body').removeClass('modal-open');
+    $('.modal-backdrop').remove();
+};
+
+function BloquearPantalla(mensaje) {
+
+    if (typeof mensaje == 'undefined') {
+        $.blockUI({
+            css: {
+                border: 'none',
+                padding: '15px',
+                backgroundColor: '#000',
+                opacity: 0,
+                color: '#fff'
+            },
+            overlayCSS: {
+                backgroundColor: 'white',
+
+            },
+        });
+    } else {
+        $.blockUI({
+            message: '<div id="cargador"><span style="font-size:28px; z-index:9999999;">' + mensaje + '</span></div>',
+            css: {
+                centerX: true,
+                centerY: true,
+                border: 'none',
+                padding: '15px',
+                backgroundColor: '#000',
+                '-webkit-border-radius': '10px',
+                '-moz-border-radius': '10px',
+                opacity: .7,
+                color: '#fff'
+            },
+            overlayCSS: {
+                backgroundColor: '#000',
+
+            },
+        });
+    }
+
+}
+
+function DesbloquearPantalla() {
+    $.unblockUI();
+}
+
+function ValidarMaxLength() {
+    $('.form-control').keypress(function (e) {
+        var max = $(this).attr('data-val-maxlength-max');
+        if (e.which < 0x20) {
+            return;
+        }
+        if (this.value.length == max) {
+            e.preventDefault();
+        } else if (this.value.length > max) {
+            this.value = this.value.substring(0, max);
+        }
+    });
+}
+
+function initializeMaxLengthTextArea() {
+    $('input[type=text], textarea').each(function () {
+        if ($(this).attr('data-val-length-max')) {
+            var length = $(this).attr('data-val-length-max');
+            $(this).prop('maxlength', length);
+        }
+    });
+
+}
+
+function select2EstaCompleto(id) {
+    return !($('#' + id + ' > .select2-choices > .select2-search-choice').length == 0);
+}
+
+function addBtnSmartMessageBox() {
+
+    $("[name='btnSmartMessageBoxAjax']").each(function () {
+        $(this).click(function () {
+            $.titulo = $(this).attr("titulo");
+            $.contenido = $(this).attr("contenido");
+            $.botones = $(this).attr("botones");
+            $.formId = $(this).attr("formId");
+            if ($(this).attr("tipo") == "eliminar")
+                $.icono = '<span class="fa-stack fa-md"><i class="fa ' + $(this).attr("icono") + ' fa-stack-1x"></i><i class="fa fa-ban fa-stack-2x text-danger"></i></span>';
+            else
+                $.icono = '<span class="fa-stack fa-md"><i class="fa ' + $(this).attr("icono") + ' fa-stack-1x"></i></span>';
+
+
+            $.SmartMessageBox({
+                title: $.icono + $.titulo,
+                content: $.contenido,
+                buttons: $.botones
+            },
+                function (ButtonPressed) {
+
+                    if (ButtonPressed == "SI") {
+                        $('#' + $.formId).trigger("submit");
+                    }
+                    else
+                        return false;
+
+                });
+
+        });
+    });
+
+    $("[name='btnSmartMessageBox']").each(function () {
+        $(this).click(function () {
+            $.targetURL = $(this).attr("target");
+            $.dato = $.parseJSON(($(this).attr("data")).toString());
+            $.titulo = $(this).attr("titulo");
+            $.contenido = $(this).attr("contenido");
+            $.botones = $(this).attr("botones");
+            $.returnUrl = $(this).attr("returnUrl");
+            if ($(this).attr("divUpdated") != undefined) {
+                $.divUpdated = $(this).attr("divUpdated");
+            };
+            if ($(this).attr("metodoJs") != undefined) {
+                $.metodoJs = $(this).attr("metodoJs");
+            };
+            if ($(this).attr("tipo") == "eliminar")
+                $.icono = '<span class="fa-stack fa-md"><i class="fa ' + $(this).attr("icono") + ' fa-stack-1x"></i><i class="fa fa-ban fa-stack-2x text-danger"></i></span>';
+            else
+                $.icono = '<span class="fa-stack fa-md"><i class="fa ' + $(this).attr("icono") + ' fa-stack-1x"></i></span>';
+            $.SmartMessageBox({
+                title: $.icono + $.titulo,
+                content: $.contenido,
+                buttons: $.botones
+            },
+                function (ButtonPressed) {
+
+                    if (ButtonPressed == "SI") {
+                        BloquearPantalla();
+                        $.ajax({
+                            url: $.targetURL,
+                            type: 'POST',
+                            data: $.dato,
+                            dataType: "json",
+                            success: function (data, textStatus) {
+                                if (data.resultado == 'success') {
+                                    if ($.returnUrl != undefined && $.returnUrl != "") {
+                                        window.location = $.returnUrl;
+                                    };
+                                    if ($.divUpdated != undefined && $.divUpdated != "") {
+                                        $("#" + $.divUpdated).empty();
+                                        $("#" + $.divUpdated).html(data.View);
+                                        if (data.idCat != undefined) {
+                                            $("#IdCategoriaExpandida").val(data.idCat);
+                                        }
+                                    };
+                                    if ($.metodoJs != undefined && $.metodoJs != "") {
+                                        executeFunctionByName($.metodoJs, window);
+                                    };
+                                    $.unblockUI();
+                                    if (data.mensaje != undefined && data.mensaje != "") {
+                                        alert(data.mensaje);
+                                    }
+                                }
+                                else if (data.resultado == 'nocontent') {
+                                    window.location = $.returnUrl;
+                                    $.unblockUI();
+                                    alert(data.mensaje);
+                                }
+                                else if (data.resultado == 'error') {
+                                    window.location = $.returnUrl;
+                                    $.unblockUI();
+                                    alert(data.mensaje);
+                                } else {
+                                    window.location = $.returnUrl;
+                                    $.unblockUI();
+                                    alert("Sin mensaje");
+                                }
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                $.unblockUI();
+                                alert(textStatus);
+                            }
+                        });
+
+                        return false;
+                    };
+
+                });
+        });
+    });
+
+};
+
+function executeFunctionByName(functionName, context /*, args */) {
+    var args = [].slice.call(arguments).splice(2);
+    var namespaces = functionName.split(".");
+    var func = namespaces.pop();
+    for (var i = 0; i < namespaces.length; i++) {
+        context = context[namespaces[i]];
+    }
+    return context[func].apply(this, args);
+}
+
+function initializeCustomAlerts() {
+    //Custom alerts
+    var _alert = null;
+
+    function consume_alert() {
+        if (_alert) return;
+        _alert = window.alert;
+        window.alert = function (message, callback) {
+            $.smallBox({
+                title: "<i class='textoAlert'>" + message + "</i>",
+                content: "<i class='fa fa-cog fa-spin fa-fw textoAlert'></i><i class='subtextoAlert'></i>",
+                color: "#fdd306",
+                iconSmall: "fa fa-info-circle bounce animated textoAlert",
+                timeout: 8000
+            }, callback);
+        };
+    }
+
+    consume_alert();
+}
+
+function agregarDefaultAMultiselect(id, elementoId, elementoName, agregarElementoAJson) {
+    //El multiselect debe tener un id explícito en la view.
+    var json = '{'
+        + '"id"  : "' + elementoId + '",'
+        + '"name" : "' + elementoName + '"'
+        + '}';
+
+    if (agregarElementoAJson)
+        json += ', ' + elementoId;
+
+    $("#" + id).attr("value", json);
+    var elemento = '<li class="select2-search-choice"><div>' + elementoName + '</div><a href="#" onclick="return false;" class="select2-search-choice-close" tabindex="-1"></a></li>'
+    $('#s2id_' + id + ' > ul.select2-choices').prepend(elemento);
+    $('#s2id_' + id + ' > ul.select2-choices > li.select2-search-field').css('width', '10px');
+}
+
+function agregarElementoAMultiselect(id, elementoId, elementoName, agregarElementoAJson) {
+    //El multiselect debe tener un id explícito en la view.
+    var json = '{'
+        + '"id"  : "' + elementoId + '",'
+        + '"name" : "' + elementoName + '"'
+        + '}';
+
+    if (agregarElementoAJson)
+        json += ', ' + elementoId;
+
+    $("#" + id).attr("value", "[]," + elementoId);
+    var elemento = '<li class="select2-search-choice"><div>' + elementoName + '</div><a href="#" onclick="return false;" class="select2-search-choice-close" tabindex="-1"></a></li>'
+    $('#s2id_' + id + ' > ul.select2-choices').prepend(elemento);
+    //$('#s2id_' + id + ' > ul.select2-choices > li.select2-search-field').css('width', '10px');
+}
+
+function clearMultiselectById(id) {
+    $('#' + id).attr("value", "[]");
+    initializeMultiselect2ById('#' + id);
+}
+
+function initializeMultiselect2ById(id) {
+    var value = $(id).attr("value");
+    if (value == '' || value == null)
+        value = '[]';
+    if (value[0] == '{' && value[value.length - 1] == '}')
+        value = '[' + value + ']';
+    var sp = value.split(']');
+    var data_default = jQuery.parseJSON(sp[0] + ']');
+    var data_action = $(id).attr("dataAction");
+    var placeholder = $(id).attr("placeholder");
+    var minimumInputLength = $(id).attr("minimumInputLength");
+    if (minimumInputLength == null) minimumInputLength = 2;
+
+    $(id).select2({
+        placeholder: placeholder,
+        allowClear: true,
+        minimumInputLength: minimumInputLength,
+        multiple: true,
+        ajax: {
+            cache: false,
+            dataType: "json",
+            quietMillis: 2000,
+            type: "POST",
+            url: data_action,
+            data: function (searchTerm) {
+                return { query: searchTerm };
+            },
+            results: function (data) {
+                return { results: data };
+            }
+        },
+        formatResult: formatResult,
+        formatSelection: formatSelection,
+        escapeMarkup: function (m) { return m; },
+        initSelection: function (element, callback) {
+            var data = data_default
+            callback(data);
+        }
+    });
+
+    function formatResult(item) {
+        var markup = "<table><tr>";
+        if (item.name !== undefined) {
+            markup += "<div>" + item.name + "</div>";
+        }
+        markup += "</td></tr></table>"
+        return markup;
+    }
+
+    function formatSelection(item) {
+        return item.name;
+    }
+}
+
+function initializeMultiselect2() {
+
+
+    $("[dataType=multiselect-input]").each(function () {
+
+        var value = $(this).attr("value");
+        if (value == '' || value == null)
+            value = '[]';
+        if (value[0] == '{' && value[value.length - 1] == '}')
+            value = '[' + value + ']';
+        var sp = value.split(']');
+        var data_default = jQuery.parseJSON(sp[0] + ']');
+        var data_action = $(this).attr("dataAction").toString();
+        var placeholder = $(this).attr("placeholder");
+        var minimumInputLength = $(this).attr("minimumInputLength");
+        if (minimumInputLength == null) minimumInputLength = 2;
+
+        $(this).select2({
+            placeholder: placeholder,
+            allowClear: true,
+            minimumInputLength: minimumInputLength,
+            multiple: true,
+            ajax: {
+                cache: false,
+                dataType: "json",
+                type: "POST",
+                quietMillis: 2000,
+                url: data_action,
+                data: function (searchTerm) {
+                    return { query: searchTerm };
+                },
+                results: function (data) {
+                    return { results: data };
+                }
+            },
+            formatResult: formatResult,
+            formatSelection: formatSelection,
+            escapeMarkup: function (m) { return m; },
+            initSelection: function (element, callback) {
+                var data = data_default
+                callback(data);
+            }
+        });
+
+        function formatResult(item) {
+            var markup = "<table><tr>";
+            if (item.name !== undefined) {
+                markup += "<div>" + item.name + "</div>";
+            }
+            markup += "</td></tr></table>"
+            return markup;
+        }
+
+        function formatSelection(item) {
+            return item.name;
+        }
+    });
+};
+
+function initializeSelect2() {
+    $("[dataType=select2-input]").each(function () {
+        var value = $(this).attr("dataValue");
+        if (value == '' || value == null)
+            value = '[]';
+        if (value[0] == '{' && value[value.length - 1] == '}')
+            value = '[' + value + ']';
+        var sp = value.split(']');
+        var data_default = jQuery.parseJSON(sp[0] + ']');
+        var data_action = $(this).attr("dataAction").toString();
+        var placeholder = $(this).attr("placeholder");
+        var minimumInputLength = $(this).attr("minimumInputLength");
+        if (minimumInputLength == null) minimumInputLength = 2;
+        var readonlyPropiedad = false;
+        if (typeof $(this).attr("readonly") === 'undefined')
+            readonlyPropiedad = $(this).attr("readonly");
+
+        $(this).select2({
+            placeholder: placeholder,
+            minimumInputLength: minimumInputLength,
+            ajax: {
+                cache: false,
+                dataType: "json",
+                type: "POST",
+                quietMillis: 2000,
+                url: data_action,
+                data: function (searchTerm) {
+                    return { query: searchTerm };
+                },
+                results: function (data) {
+                    return { results: data };
+                }
+            },
+            formatResult: formatResult,
+            formatSelection: formatSelection,
+            escapeMarkup: function (m) { return m; },
+            initSelection: function (element, callback) {
+                var data = data_default
+                callback(data[0]);
+            },
+            readonly: readonlyPropiedad
+        });
+
+
+
+        function formatResult(item) {
+            var markup = "<table><tr>";
+            if (item.name !== undefined) {
+                markup += "<div>" + item.name + "</div>";
+            }
+            markup += "</td></tr></table>"
+            return markup;
+        }
+
+        function formatSelection(item) {
+            return item.name;
+        }
+    });
+}
+
+function initializeSelect2ById(id) {
+    var value = $(id).attr("dataValue");
+    if (value == '' || value == null)
+        value = '[]';
+    if (value[0] == '{' && value[value.length - 1] == '}')
+        value = '[' + value + ']';
+    var sp = value.split(']');
+    var data_default = jQuery.parseJSON(sp[0] + ']');
+    var data_action = $(id).attr("dataAction").toString();
+    var placeholder = $(id).attr("placeholder");
+    var minimumInputLength = $(id).attr("minimumInputLength");
+    if (minimumInputLength == null) minimumInputLength = 2;
+    var readonlyPropiedad = false;
+    if (typeof $(id).attr("readonly") === 'undefined')
+        readonlyPropiedad = $(id).attr("readonly");
+
+    $(id).select2({
+        placeholder: placeholder,
+        minimumInputLength: minimumInputLength,
+        ajax: {
+            cache: false,
+            dataType: "json",
+            type: "POST",
+            quietMillis: 2000,
+            url: data_action,
+            data: function (searchTerm) {
+                return { query: searchTerm };
+            },
+            results: function (data) {
+                return { results: data };
+            }
+        },
+        formatResult: formatResult,
+        formatSelection: formatSelection,
+        escapeMarkup: function (m) { return m; },
+        initSelection: function (element, callback) {
+            var data = data_default
+            callback(data[0]);
+        },
+        readonly: readonlyPropiedad
+    });
+
+
+
+    function formatResult(item) {
+        var markup = "<table><tr>";
+        if (item.name !== undefined) {
+            markup += "<div>" + item.name + "</div>";
+        }
+        markup += "</td></tr></table>"
+        return markup;
+    }
+
+    function formatSelection(item) {
+        return item.name;
+    }
+}
+
+function clearSelect2ById(id) {
+    $('#' + id).attr("value", "[]");
+    initializeSelect2ById('#' + id);
+}
+
+function initializeMultiselect2Client() {
+    $("[dataType=multiselect-input-client]").each(function () {
+        var value = $(this).attr("value");
+        if (value == '' || value == null)
+            value = '[]';
+        if (value[0] == '{' && value[value.length - 1] == '}')
+            value = '[' + value + ']';
+        var sp = value.split(']');
+        var data_default = jQuery.parseJSON(sp[0] + ']');
+        var data_values = jQuery.parseJSON($(this).attr("dataValues"));
+        console.log('data_values' + data_values);
+        $(this).select2({
+            multiple: true,
+            data: data_values,
+            formatResult: formatResult,
+            formatSelection: formatSelection,
+            initSelection: function (element, callback) {
+                var data = data_default;
+                callback(data);
+            }
+        });
+
+        function formatResult(item) {
+            var markup = "<table><tr>";
+            if (item.name !== undefined) {
+                markup += "<div>" + item.name + "</div>";
+            }
+            markup += "</td></tr></table>"
+            return markup;
+        }
+
+        function formatSelection(item) {
+            return item.name;
+        }
+    });
+}
+
+// Carga el modal para el cambio de contraseña
+$('#lnkCambiarContrasenia').click(function () {
+    if ($('#modalCambiarContrasenia').find("iframe").length === 0) {
+        $('#modalCambiarContrasenia').find(".modal-body")
+            .append("<iframe onload='showModalContrasenia();' src='/Usuario/Manage' width='100%' height='480' frameborder='0'></iframe>");
+    }
+    else {
+        showModalContrasenia();
+    }
+});
+
+function showModalContrasenia() {
+    $('#modalCambiarContrasenia').modal("show");
+}
+
+function actualizarDDL(id, url, ddlToUpdate) {
+    $.ajax({
+        type: 'GET',
+        url: url + id.toString(),
+        dataType: 'json',
+        success: function (data) {
+            var ddl = $('#' + ddlToUpdate);
+            ddl.empty();
+            $(data).each(function () {
+                ddl.append(
+                    $("<option />", {
+                        value: this.Value,
+                        text: this.Text
+                    })
+                );
+            });
+        }
+    });
+}
+
+function PostForm(id, entityType, action) {
+
+    var action = "/" + entityType + "/" + action;
+
+    return $.ajax({
+        cache: false,
+        url: action,
+        data: $("#" + id).serialize(),
+        type: "POST",
+        async: false,
+    });
+
+};
+
+function initializeDataTable(pageLengthParam, fnOnDraw) {
+    $("[data_type=datatable]").each(function () {
+        if (!$.fn.dataTable.isDataTable('#' + $(this).attr("id"))) {
+            var data_action = $(this).attr("data_action").toString();
+            var data_callback = $(this).attr("data_callback");
+            var min_search_chars = $(this).attr("min_search_chars");
+            var data_params = $(this).attr("data_params");
+            if (data_params != null)
+                data_params = jQuery.parseJSON($(this).attr("data_params"));
+            var data_columns = jQuery.parseJSON($(this).attr("data_columns"));
+            var pageLength = parseInt($(this).attr("pagelength"));
+            if (pageLength == null)
+                if (pageLengthParam == null || pageLengthParam == undefined) {
+                    pageLength = 150;
+                } else {
+                    pageLength = pageLengthParam;
+                }
+            var data_error = $(this).attr("data_error");
+
+            var order = undefined;
+            
+                order = [[2, "desc"]];
+            
+
+            var myTable = $(this).dataTable({
+
+               
+
+
+                "sPaginationType": "full_numbers",
+
+
+                "sDom":
+            "<'tabla-header'<'filtro-tabla pull-left'f><'col-1 pull-right'l>r>" +
+            "t" +
+            "<'tabla-footer'<''i><''p>>",
+
+
+                "oLanguage": {
+                    "lengthMenu": "Mostrar _MENU_ registros",
+                    "sProcessing": "<svg class='circularChico' style='height:5px'><circle class='path' cx='12.5' cy='12.5' r='10' fill='none' stroke-width='2' stroke-miterlimit='2'></circle></svg><span style='color: #999999; float:left; margin-left:6px; margin-top: 6px; font-size:16px'> Procesando...</span>",
+                    "sZeroRecords": "No se encontraron resultados",
+                    "sEmptyTable": "Ningún dato disponible en esta tabla",
+                    "sInfo": "Registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "sInfoEmpty": "Registros del 0 al 0 de un total de 0 registros",
+                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                    "sLoadingRecords": "Cargando...",
+                    "sSearch": "Filtro ",
+                    "oPaginate": {
+                        "sFirst": "Primero",
+                        "sLast": "Último",
+                        "sNext": "Siguiente",
+                        "sPrevious": "Anterior"
+                    }
+                },
+                "lengthMenu": [10, 25, 50, 100, 150],
+                "pageLength": pageLength,
+                "bServerSide": true,
+                "autoWidth": false,
+                "sAjaxSource": data_action,
+                "fnServerData": function (sSource, aoData, fnCallback) {
+                    $(data_params).each(function (i, item) {
+                        aoData.push({ "name": item.name, "value": item.value });
+                    });
+                    $.ajax({
+                        "dataType": 'json',
+                        "url": sSource,
+                        "data": aoData,
+                        "success": function (json) {
+                            //Ejecuto la función que utiliza datatable por defecto
+                            fnCallback(json);
+
+                            if (isFunction(fnOnDraw))
+                            {
+                                fnOnDraw(json);
+                            }
+
+                            //Ejecuto la función custom definida en data_callback en la vista
+                            if (data_callback != "" && data_callback != undefined)
+                                window[data_callback](json);
+                            
+                        },
+                        "error": function () {
+                            alert("Error Al Obtener Items. Intente mas tarde."); 
+                            if (data_error != "" && data_error != undefined) {
+                                window[data_error]();
+                            }
+                        }
+                    });
+                },
+                "bProcessing": true,
+                "aoColumns": data_columns,
+                "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                    for (var i = 0; i < aData.length; i++) {
+                        if ((typeof aData[i]) == "string") {
+                            if (aData[i].startsWith("clases")) {
+                                var clases = aData[i].split(",");
+                                if (clases.length > 1) {
+                                    for (var j = 1; j < clases.length; j++) {
+                                        nRow.className += " " + clases[j];
+                                    }
+
+                                    i = aData.length;
+                                }
+                            }
+                        }
+                    }
+                    return nRow;
+                }
+            });
+            
+
+            $('.dataTables_filter input')
+           .attr("placeholder", "Buscar") //agregado por clemente placeholder
+            .unbind()
+           .bind('keypress', function (e) {
+               if ($(this).val().length == 0 && e.keyCode == 13) {
+                   myTable.fnFilter($(this).val());
+               }
+               if ((e.keyCode != 13) || ($(this).val().length < min_search_chars)) return;
+               myTable.fnFilter($(this).val());
+           });
+            agregarBotonExportacion();
+            
+        }
+
+    });
+}
+
+function initializeDataTablePorId(id, fnDrawCallback) {
+    if (!$.fn.dataTable.isDataTable('#' + id)) {
+        var data_action = $('#' + id).attr("data_action").toString();
+        var data_callback = $('#' + id).attr("data_callback");
+        var min_search_chars = $('#' + id).attr("min_search_chars");
+        var data_params = $('#' + id).attr("data_params");
+        if (data_params != null)
+            data_params = jQuery.parseJSON($('#' + id).attr("data_params"));
+        var data_columns = jQuery.parseJSON($('#' + id).attr("data_columns"));
+        var pageLength = $('#' + id).attr("pagelength");
+        if (pageLength == null)
+            pageLength = 150;
+
+        var data_error = $('#' + id).attr("data_error");
+
+        var myTable = $('#' + id).dataTable({
+            "sPaginationType": "full_numbers",
+            "sDom": "<'tabla-header'<'filtro-tabla pull-left'f><'col-1 pull-right'l>r>" + "t" + "<'tabla-footer'<''i><''p>>",
+            "oLanguage": {
+                "sProcessing": "<svg class='circularChico'><circle class='path' cx='12.5' cy='12.5' r='10' fill='none' stroke-width='2' stroke-miterlimit='2'></circle></svg><span style='color: #999999; float:left; margin-left:6px; margin-top: 6px; font-size:16px'> Procesando...</span>",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "Ningún dato disponible en esta tabla",
+                "sInfo": "Registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sLoadingRecords": "Cargando...",
+                //"sSearch": "Filtro",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                }
+            },
+            "lengthMenu": [10, 25, 50, 100, 150],
+            "pageLength": pageLength,
+            "bServerSide": true,
+            "autoWidth": false,
+            "sAjaxSource": data_action,
+            "fnServerData": function (sSource, aoData, fnCallback) {
+                $(data_params).each(function (i, item) {
+                    aoData.push({ "name": item.name, "value": item.value });
+                });
+                $.ajax({
+                    "dataType": 'json',
+                    "url": sSource,
+                    "data": aoData,
+                    "success": function (json) {
+                        //Ejecuto la función que utiliza datatable por defecto
+                        fnCallback(json);
+                        //Ejecuto la función custom definida en data_callback en la vista
+                        if (data_callback != "" && data_callback != undefined)
+                            window[data_callback](json);
+                    },
+                    "error": function () {
+                        if (data_error != "" && data_error != undefined) {
+                            window[data_error]();
+                        }
+                    }
+                });
+            },
+            "bProcessing": true,
+            "aoColumns": data_columns,
+            "fnDrawCallback": fnDrawCallback
+        });
+
+        $('.dataTables_filter input')
+        .attr("placeholder", "Buscar") //agregado por clemente placeholder
+        .unbind()
+        .bind('keypress', function (e) {
+            if ($(this).val().length == 0 && e.keyCode == 13) {
+                myTable.fnFilter($(this).val());
+            }
+            if ((e.keyCode != 13) || ($(this).val().length < min_search_chars)) return;
+            myTable.fnFilter($(this).val());
+        });
+    }
+}
+
+function initializeDatePicker() {
+    $("[dataType=datepicker]").each(function () {
+        // Date Range Picker
+        $(this).datepicker({
+            changeMonth: true,
+            closeText: "Limpiar",
+            currentText: "Hoy",
+            dateFormat: "dd/mm/yy",
+            dayNames: ["Domingo", "Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"],
+            dayNamesMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+            dayNamesShort: ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"],
+            defaultDate: "+0d",
+            monthNames: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembere", "Octubre", "Noviembre", "Deciembre"],
+            monthNamesShort: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+            nextText: '<i class="fa fa-chevron-right"></i>',
+            //numberOfMonths: 3,
+            prevText: '<i class="fa fa-chevron-left"></i>',
+            //showButtonPanel: true
+
+        });
+    });
+}
+
+function replaceDateValidation() {
+    $.validator.methods.date = function (value, element) {
+        {
+            if (this.optional(element)) {
+                return true;
+            }
+            else {
+                try {
+                    $.datepicker.parseDate('dd/mm/yy', value);
+                    return true;
+                } catch (err) {
+                    return false;
+                }
+            }
+        }
+    }
+}
+
+function bloquearWizard() {
+    $.blockUI({
+        message: '<div id="cargador"><div id=circulo-gira></div><span style="color:#058dc7; float:left; margin-left:6px; margin-top:4px; font-size:18px"> Cargando...</span></div>',
+        css: {
+            width: '156px',
+            height: '52px',
+            border: 'none',
+            padding: '11px',
+            left: '43%',
+            top: '105px',
+            '-webkit-border-radius': '0px',
+            '-moz-border-radius': '0px',
+            opacity: 1.5,
+            color: '#fff'
+        }
+    });
+}
+
+//Cuerpo: Muestra maximo 200 caracteres
+function notificacionEscritorio(titulo, cuerpo, url) {
+    if (!Notification) {
+        alert('Por favor, use una version actualizada de Google Chrome, Firefox o Internet Explorer.');
+        return;
+    }
+
+    if (Notification.permission !== "granted")
+        Notification.requestPermission();
+
+    var notification = new Notification(titulo, {
+        icon: url,
+        body: cuerpo
+    });
+
+    //notification.onclick = function () {
+    //    window.open("http://stackoverflow.com/a/13328397/1269037");
+    //}
+
+}
+
+function mostrarMensajesEscritorio(cantidad) {
+    var cant = parseInt(cantidad);
+    for (i = 1; i <= cant + 1; i++) {
+        if ($('#MensajeEscritorioTitulo' + "_" + i).length > 0 && $('#MensajeEscritorioMensaje' + "_" + i).length > 0) {
+            notificacionEscritorio($('#MensajeEscritorioTitulo' + "_" + i).val(), $('#MensajeEscritorioMensaje' + "_" + i).val(), $('#MensajeEscritorioUrlImagen' + "_" + i).val());
+        }
+    }
+
+}
+
+function ModalVerNoticia(noticiaId) {
+    $('#noticiasModalContenido').html('');
+    $('#modalNoticiasDetail').modal('hide');
+    BloquearPantalla();
+    $('#modalNoticiasDetail').modal('show');
+    $.ajax({
+        type: 'POST',
+        data: { noticiaId: noticiaId },
+        url: '/Noticia/_VerNoticia',
+        success: function (data) {
+
+            $('#noticiasModalContenido').html(data);
+
+            DesbloquearPantalla();
+            expandirModal();
+
+
+        },
+        error: function (data, errorThrown) {
+            DesbloquearPantalla();
+            alert("Error al intentar editar el Ticket");
+        }
+    });
+}
+
+function expandirModal() {
+    setTimeout("expandirModalDelay()", 100);
+}
+
+function expandirModalDelay() {
+    $('.expanding').each(function () {
+        $(this).expanding();
+    });
+}
+
+function abrirPaginas(paginas) {
+    var res = paginas.split(",");
+    res.forEach(function (data) {
+        window.open(data, '_blank');
+    });
+}
+
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+//Refresca la tabla a la que pertenece el botón que se haya cliqueado
+function refrescarTabla(elem) {
+    $(elem).parents('table:first').DataTable().ajax.reload(null, false);
+}
+
+function ImgError(source) {
+    source.src = "/Content/Images/SIN-IMAGEN.jpg";
+    source.onerror = "";
+    return true;
+}
+
+function PrintImage(src) {
+
+    var htmlDoc = "<html><head></head><body><img src='" + src + "' style='max-width:80%'/></body></html>";
+    var popup = window.open();
+    popup.document.write(htmlDoc);
+
+
+    setTimeout(function () {
+        popup.focus();
+        popup.print();
+    }, 500);//delay para que cargue la imagen en la pagina nueva, el onload no funca
+}
+
+function backToPage() {
+    var prev = historyMan.getLastValid();
+    if (prev !== "") {
+        BloquearPantalla();
+        window.open(prev, "_self");
+    }
+}
+
+var historyMan = function () {
+
+    parseUrl = function (url) {
+        return url.split('#')[0];
+    }
+
+    getSessionHistory = function () {
+
+        var sessionHistory = [];
+        if (sessionStorage.getItem('history') !== null) {
+            sessionHistory = JSON.parse(sessionStorage.getItem('history'));
+        }
+        return sessionHistory
+    };
+
+    setSessionHistory = function () {
+
+        var sessionHistory = getSessionHistory();
+        var ant = sessionHistory[sessionHistory.length - 1];
+        var noPostBack = true;
+
+        if (ant !== undefined) {
+            noPostBack = parseUrl(ant) !== parseUrl(document.referrer);
+        }
+
+        if (document.referrer !== "" && document.referrer.indexOf("/Error/Error") === -1 && noPostBack) {
+            sessionHistory.push(document.referrer);
+
+            if (sessionHistory.length > 25) {
+                sessionHistory = sessionHistory.slice(Math.max(sessionHistory.length - 5, 1))
+            }
+            sessionStorage.setItem('history', JSON.stringify(sessionHistory));
+        }
+
+    };
+
+    getLastValid = function () {
+        var last = "";
+        getSessionHistory().reverse().some(function (elem) {
+            if (parseUrl(elem) !== parseUrl(document.URL)) {
+                last = elem;
+                return true;
+            }
+        });
+        return last;
+    }
+
+    var inner = {};
+
+    inner.instance = function () {
+        setSessionHistory();
+        return inner;
+    }
+
+    inner.getLastValid = function () {
+        return getLastValid();
+    }
+
+    inner.getHistory = function () {
+        var items = getSessionHistory();
+        return obj = {
+            items: items,
+            size: items.length,
+            lastValid: getLastValid()
+        }
+    }
+
+    return inner;
+
+}().instance();
+
+function ToUpper(e) {
+    e.currentTarget.value = e.currentTarget.value.toUpperCase();
+}
+
+function addEventListenerToClassMembers(className, eventName, eventHandler, cssProps) {
+
+    Array.prototype.slice.call(document.querySelectorAll(className))
+        .forEach(function (el) {
+            el.removeEventListener(eventName, eventHandler);
+            el.addEventListener(eventName, eventHandler);
+            if (cssProps !== undefined) {
+                for (k in cssProps) {
+                    el.style[k] = cssProps[k];
+                }
+            }
+        })
+}
+
+$(function () {
+    addEventListenerToClassMembers(".backToPage", "click", backToPage);
+    addEventListenerToClassMembers(".toUpper", "keyup", ToUpper, { "textTransform": "uppercase" });
+})
+
+function getRoot() {
+    return document.URL.replace(window.location.pathname.toString(), "").split('#')[0].split('?')[0];
+}
+
+function inicializarDataTable() {
+    $(".table:not(.noInstance):not([data_type=datatable])").dataTable({
+        "sPaginationType": "full_numbers",
+        "sDom":
+        "<'tabla-header'<'dataTables_filter pull-left'f><'col-1 pull-right'l>r>" +
+        "t" +
+        "<'tabla-footer'<''i><''p>>",
+        "ordering": false,
+        "oLanguage": {
+            "sProcessing": "<div id='cargador'><div id=circulo-gira></div><span style='color:#058dc7; float:left; margin-left:6px; margin-top:4px; font-size:18px'> Procesando...</span></div>",
+            "bProcessing": true,
+            "autoWidth": false,
+            //"sLengthMenu": "Mostrar _MENU_ registros",
+            "sZeroRecords": "No se encontraron resultados",
+            "sEmptyTable": "Ningún dato disponible en esta tabla",
+            "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+
+            "sLoadingRecords": "Cargando...",
+            "oPaginate": {
+                "sFirst": "Primero",
+                "sLast": "Último",
+                "sNext": "Siguiente",
+                "sPrevious": "Anterior"
+            }
+        }
+
+    });
+
+    $('.dataTables_filter input')
+        .attr("placeholder", "Buscar");
+    
+    //agregarBotonExportacion();
+    
+}
+
+function validateForm(form, fnCallback) {
+    //la variable form debe ser un objeto jQuery
+    form.removeData("validator", null);
+
+    $.validator.unobtrusive.parse(form);
+
+    form.find('input[type="submit"]').on("click", function () {
+        form.valid();
+    })
+
+    if (fnCallback !== undefined) {
+        fnCallback();
+    }
+}
+  
+function ValidarForm(formId) {
+    var valid;
+    var form = $("#" + formId);
+    var validator = form.validate();
+    var dominio = true;
+    var mensaje = "";
+    var elem = null;
+
+    if (formId == 'smart-form-Vehiculo' || formId == 'smart-form-Vehiculo-edit') {
+        dominio = formatoDominio();
+        mensaje = "Formato de dominio incorrecto";
+        elem = "Dominio";
+    }
+    
+    if (form.valid() && dominio) {
+        $("#modal-confirm").modal("toggle");
+        valid = true;
+    }
+    else {
+        valid = false;
+        mostrarErrorSpan(dominio, mensaje, elem);
+        validator.focusInvalid();
+    }
+    
+    return valid;
+}
+
+function mostrarErrorSpan(valid, mensaje, elem) {
+    var element = $('input[name="' + elem + '"]');
+    var errorSpan = $('span[name="' + elem + '-mensaje-error"]');
+    if (valid) {
+        errorSpan.find('span').slideUp();
+        errorSpan.removeClass('field-validation-error');
+        errorSpan.addClass('field-validation-valid');
+        errorSpan.find('span').remove();
+        element.removeClass('input-validation-error');
+        element.addClass('valid');
+    } else {
+        errorSpan.find('span').remove();
+        errorSpan.removeClass('field-validation-valid');
+        errorSpan.addClass('field-validation-error animated delay-1s fadeInDown');
+        errorSpan.append("<span hidden>" + mensaje + "</span>").find('span').fadeIn();
+        element.removeClass('valid');
+        element.addClass('input-validation-error');
+    }
+}
+
+//Evita que se puedan tipear más caracteres que un límite dado
+function preventInMaxLength(input, cant) {
+    input.on('keydown keyup', function (e) {
+        if ($(this).val().length >= cant
+            && e.keyCode != 46 // delete
+            && e.keyCode != 8 // backspace
+           ) {
+            e.preventDefault();
+        }
+    })
+}
+
+function initializeSmartModal() {
+    $("[dataType=smartModal]").each(function () {
+        var container = $(this).data("container");
+        var header = $(this).data("header");
+        var content = $(this).data("content");
+        var buttons = $(this).data("buttons");
+        var modalId = $(this).data("modal-id");
+        var formId = $(this).data("form-id");
+
+        if (formId == null || formId == "") {
+            $(this).attr("data-toggle", "modal");
+            $(this).attr("data-target", "#" + modalId);
+        } else {
+            $(this).click(function () {
+                if (formId === "frm-titularfisico" || formId === "frm-titularjuridico") {
+                    validacionCuit();
+                } else {
+                    ValidarForm(formId);
+                }
+            });
+        }
+
+
+        $.SmartModal({
+            container: container,
+            header: header,
+            content: content,
+            buttons: buttons,
+            modalId: modalId
+        });
+    });
+}
+
+function safeGet(element, fn)
+{
+    try
+    {
+        return fn(element);
+    } catch (e)
+    {
+        return undefined;
+    }
+}
+
+function isFunction(fn)
+{
+    return fn instanceof Function;
+}
+
+function setPanelsHeight() {
+
+    $(".entidad")
+  	.get()
+  	.forEach(e=> {
+
+  	    var panels = $(e).find(".panel");
+  	    var max = Math.max(...panels.get()
+        			  .map(p=>p.offsetHeight))
+  	    panels.css("height", max);
+
+  	})
+
+}
+
+function salvarBugsModales() {
+    //Evita algunos bugs al abrir y cerrar un modal dentro de otro modal.
+    $(document).on("hidden.bs.modal", function () {
+        if ($(".modal").is(':visible'))
+            $(document.body).addClass("modal-open");
+            $(document.body).css("padding-right", 0);
+    });
+}
+
+function mostrarDropzoneSegunCategoria() {
+    var drops = ["ComprobanteInscripcionREGOTAVU", "ComprobantePagoREGOTAVU", "CertCalidadAmbiental"];
+
+    if ($(".radio-inline").find("input:checked").val() === "3" || $("#categoriaDescription").text().toLowerCase() === "food truck") {
+        $(".dropzoneHidden").each(function () {
+            var dropzoneid = $(this).attr("id");
+            $(this).show().find("input").removeAttr("disabled");
+            modificarAlturaPanelVehiculo();
+        });
+        setPanelsHeight();
+        validarVehiculoFoodTruck();
+    } else {
+        $(".dropzoneHidden").each(function () {
+            var dropzoneid = $(this).attr("id");
+            if ($.inArray(dropzoneid, drops) === -1) {
+                $(this).show().find("input").removeAttr("disabled");
+            } else {
+                $(this).hide().find("input").attr("disabled", "disabled");
+            }
+            $(this).parents(".entidad").find(".panel-default").css("height", 362);
+        });
+        setPanelsHeight();
+    }
+}
+
+function btnExportarResultadosInspeccion() {
+    $("#btn-exportar-resultados").on("click", function (e) {
+        
+        var fecha = $("#datepickerFinalizadas :input").val();
+        
+        if (fecha) {
+            $("#modalExportarFinalizadas").modal("hide");
+            $.ajax({
+                url: "/PanelAdministracion/ExportarResultadosInspeccion",
+                type: "POST",
+                data: {
+                    "fecha": fecha
+                },
+                beforeSend: function () {
+                    BloquearPantalla("Obteniendo resultados de inspección");
+                },
+                success: function (data) {
+                    DesbloquearPantalla();
+                    if (data.status === "ok") {
+                        window.open("/PanelAdministracion/DescargarExcel?nombreArchivo=" + data.nombreArchivo, "_blank");
+                        alert(data.message);
+                    } else if (data.message) {
+                        alert(data.message);
+                    } else {
+                        alert("Ocurrio un error al generar el excel");
+                    }
+                },
+                error: function (error) {
+                    DesbloquearPantalla();
+                    alert("Ocurrio un error al generar el excel");
+                }
+            })
+        } else {
+            alert("Debe ingresar una fecha.");
+        }
+    }).fadeIn();
+}
+function btnExportarInspeccionesPlanificadas() {
+    $("#btn-exportar-programadas").on("click", function (e) {
+        var fecha = $("#datepickerProgramadas :input").val();
+        if (fecha) {
+            $("#modalExportarProgramadas").modal("hide");
+            $.ajax({
+                url: "/PanelAdministracion/ExportarInspeccionPlanificadas",
+                type: "POST",
+                data: {
+                    "fecha": fecha
+                },
+                beforeSend: function () {
+                    BloquearPantalla("Obteniendo Inspecciones Planificadas");
+                },
+                success: function (data) {
+                    DesbloquearPantalla();
+                    if (data.status === "ok") {
+                        window.open("/PanelAdministracion/DescargarExcel?nombreArchivo=" + data.nombreArchivo, "_blank");
+                        alert(data.message);
+                    } else if (data.message) {
+                        alert(data.message);
+                    } else {
+                        alert("Ocurrio un error al generar el excel");
+                    }
+                },
+                error: function (error) {
+                    DesbloquearPantalla();
+                    alert("Ocurrio un error al generar el excel");
+                }
+            })
+        } else {
+            alert("Debe ingresar una fecha.");
+        }
+    }).fadeIn();
+}
+
+
+function validarMaxLenght() {
+   //Evito que el usuario ingrese caracteres especiales en el dominio de vehiculo
+   $('#imputNumero').keypress(function (e) {
+       var rex = new RegExp("[0-9]");
+       var value = e.which;
+       var esEnter = value === 8;
+       value = String.fromCharCode(value);
+       if (!rex.test(value)) {
+           if (!esEnter) {
+               e.preventDefault();
+           }
+       }
+   });
+}
+
+function ExportarFiltros(url) {
+    $.ajax({
+        url: '/PanelAdministracion/GenerarExcel' + url,
+        type: "POST",
+        beforeSend: function () {
+            BloquearPantalla("Exportando filtros...");
+        },
+        success: function (data) {
+            DesbloquearPantalla();
+            if (data.status === "ok") {
+                window.open("/PanelAdministracion/DescargarExcel?nombreArchivo=" + data.nombreArchivo, "_blank");
+                alert(data.message);
+            } else if (data.message) {
+                alert(data.message);
+            } else {
+                alert("Ocurrio un error al generar el excel");
+            }
+        },
+        error: function (error) {
+            DesbloquearPantalla();
+            alert("Ocurrio un error al generar el excel");
+        }
+    })
+
+}
+
+function agregarBotonExportacion() {
+    $("#btn-exportar-excel").remove();
+
+    var btnExcel = $("<button/>", {
+        class: "btn btn-success boton-Excel",
+        type: "button",
+        name: "exportar_Excel",
+        id: "btn-exportar-excel",
+        style: "margin-left:15px;",
+        text: "Exportar Excel"
+    }).on("click", exportarLibroExcelPorFiltro).fadeIn();
+
+    $("#dt-personas_wrapper > .tabla-header").append(btnExcel);
+}
+
+function exportarLibroExcelPorFiltro() {
+    let searchTerm = $('input[placeholder="Buscar"]').val();
+    $.ajax({
+        url: "/LibroDigital/GenerarExcelPorFiltro?searchTerm=" + searchTerm,
+        type: "POST",
+        beforeSend: function () {
+            BloquearPantalla();
+        },
+        success: function (data) {
+
+            DesbloquearPantalla();
+
+            if (data.status === "Ok") {
+                window.open("/LibroDigital/BajarExcel?nombreArchivo=" + data.nombreArchivo, "_blank");
+            }
+            else {
+                DesbloquearPantalla();
+                alert("Error al generar Excel. Intente mas tarde.");
+            }
+        },
+        error: function (error) {
+
+            DesbloquearPantalla();
+            alert("Error interno al generar Excel. Intente mas tarde.");
+        }
+    });
+}
+
+function exportarExcelSolicitudDetalles() {
+    $.ajax({
+        url: "/LibroDigital/GenerarExcelDetalles",
+        type: "POST",
+        beforeSend: function () {
+            BloquearPantalla();
+        },
+        success: function (data) {
+
+            DesbloquearPantalla();
+
+            if (data.status === "Ok") {
+                window.open("/LibroDigital/BajarExcel?nombreArchivo=" + data.nombreArchivo, "_blank");
+            }
+            else {
+                DesbloquearPantalla();
+                alert("Error al generar Excel. Intente mas tarde.");
+            }
+        },
+        error: function (error) {
+
+            DesbloquearPantalla();
+            alert("Error interno al generar Excel. Intente mas tarde.");
+        }
+    });
+}
+
+
+
+function exportarLibroExcel(personaId, TipoPersona) {
+    $.ajax({
+        url: "/LibroDigital/GenerarExcel?personaId=" + personaId + "&tipo=" + TipoPersona,
+        type: "POST",
+        beforeSend: function () {
+            BloquearPantalla();
+        },
+        success: function (data) {
+
+            DesbloquearPantalla();
+
+            if (data.status === "Ok") {
+                window.open("/LibroDigital/BajarExcel?nombreArchivo=" + data.nombreArchivo, "_blank");
+            }
+            else {
+                alert("Error al generar Excel");
+            }
+        },
+        error: function (error) {
+
+            DesbloquearPantalla();
+            alert("Error al generar Excel");
+        }
+    });
+}
