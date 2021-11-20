@@ -268,8 +268,9 @@
                 </div>
                 <div class="collapse" id="collapseExample">
 
-
-                    <div class="my-3 p-3 bg-body rounded shadow-sm" id="formulario">
+                    <br>
+                    <br id="formulario" />
+                    <div class="my-3 p-3 bg-body rounded shadow-sm">
                         <h2>Formulario</h2>
                         <h4 class="text-muted">Completar el formulario</h4>
 
@@ -281,7 +282,7 @@
                                     <h5>Cuenta con matafuego en las instalaciones de su local?</h5>
                                     <div class="my-3">
                                         <div class="form-check">
-                                            <input id="credit" name="paymentMethod" type="radio" class="form-check-input" checked="" required="">
+                                            <input id="credit" name="paymentMethod" type="radio" class="form-check-input" required="">
                                             <label class="form-check-label" for="credit">Si</label>
                                         </div>
                                         <div class="form-check">
@@ -315,17 +316,17 @@
 
                                 <div class="col-md-6">
                                     <h5>Cuenta con seguro contra incendio?</h5>
-                                    <div class="my-3">
+                                    <div class="my-4">
                                         <div class="form-check">
-                                            <input id="credit" name="paymentMethod" type="radio" class="form-check-input" checked="" required="">
+                                            <input id="credit2" name="paymentMethod2" type="radio" class="form-check-input" required="">
                                             <label class="form-check-label" for="credit">Si</label>
                                         </div>
                                         <div class="form-check">
-                                            <input id="debit" name="paymentMethod" type="radio" class="form-check-input" required="">
+                                            <input id="debit2" name="paymentMethod2" type="radio" class="form-check-input" required="">
                                             <label class="form-check-label" for="debit">No</label>
                                         </div>
                                         <div class="form-check">
-                                            <input id="paypal" name="paymentMethod" type="radio" class="form-check-input" required="">
+                                            <input id="paypal2" name="paymentMethod2" type="radio" class="form-check-input" required="">
                                             <label class="form-check-label" for="paypal">No se</label>
                                         </div>
                                     </div>
@@ -340,9 +341,7 @@
                                 <option>Rivadavia</option>
                                 <option>Federación Patronal</option>
                               </select>
-                                    <div class="invalid-feedback">
-                                        Please provide a valid state.
-                                    </div>
+
                                 </div>
 
 
@@ -370,30 +369,58 @@
                     </div>
 
                     <div class="collapse" id="collapseResultado">
-
+                        <br>
+                        <br id="resultados" />
                         <h2 class="border-bottom p-2 mb-0 ">Resultados 🚦</h2>
 
-                        <a href="https://gestioncolaborativa.buenosaires.gob.ar/prestaciones" title="" alt="" class="col-md-4 col-sm-6 col-xs-12 ocultarSP-116598 cardPS">
+                        <div href="#" title="" alt="" class="col-md-4 col-sm-6 col-xs-12 ocultarSP-116598 cardPS">
                             <div class="thumbnail contenedorTarjetaPS alert alert-danger">
                                 <div class="tarjetasSPimagen">
 
                                 </div>
                                 <div class="tarjetaPS ">
                                     <h3>🚫 Criticidad ALTA</h4>
-                                        <p class="parrafoSPp"><b>Cuenta con seguro contra incendio?</b> No.<br>Debe contar obligatoriamente con un seguro contra inendio.</p>
+                                        <p class="parrafoSPp"><b>Cuenta con seguro contra incendio?</b> No.<br>Debe contar obligatoriamente con un seguro contra inendio.
+
+
+                                            <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">     Acción Posible    </button>
+
+
+                                        </p>
 
                                         <p class="parrafoSPp"></p><b>Procure saldar su deuda impositiva antes de la proccima inspección.</b></p>
                                 </div>
                             </div>
+                            <!-- Button trigger modal -->
 
 
-                        </a>
+                            <!-- Modal -->
+                            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                            <h4 class="modal-title" id="myModalLabel">Auditorías integrales programadas (AIP)</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>La Agencia Gubernamental de Control (AGC) realiza <a href="/agc/aip">Auditorías Integrales Programadas (AIP)</a> que apuntan a <strong>regularizar las actividades comerciales de manera transparente</strong>.
+                                                Las mismas se notifican con antelación.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                                            <button type="button" class="btn btn-primary">Guardar cambios</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
 
 
 
 
 
-                        <a href="https://gestioncolaborativa.buenosaires.gob.ar/prestaciones" title="" alt="" class="col-md-4 col-sm-6 col-xs-12 ocultarSP-116598 cardPS">
+                        <div href="https://gestioncolaborativa.buenosaires.gob.ar/prestaciones" title="" alt="" class="col-md-4 col-sm-6 col-xs-12 ocultarSP-116598 cardPS">
                             <div class="thumbnail contenedorTarjetaPS alert alert-warning">
                                 <div class="tarjetasSPimagen">
 
@@ -407,12 +434,12 @@
                             </div>
 
 
-                        </a>
+                        </div>
 
 
 
 
-                        <a href="https://gestioncolaborativa.buenosaires.gob.ar/prestaciones" title="" alt="" class="col-md-4 col-sm-6 col-xs-12 ocultarSP-116598 cardPS">
+                        <div href="https://gestioncolaborativa.buenosaires.gob.ar/prestaciones" title="" alt="" class="col-md-4 col-sm-6 col-xs-12 ocultarSP-116598 cardPS">
                             <div class="thumbnail contenedorTarjetaPS alert alert-success">
                                 <div class="tarjetasSPimagen">
 
@@ -426,7 +453,7 @@
                             </div>
 
 
-                        </a>
+                        </div>
 
 
 
