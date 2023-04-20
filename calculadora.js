@@ -16,3 +16,14 @@ function calcular() {
     document.getElementById("resultado2").innerHTML = "El resultado final es: " + resultadoFinal;
   }
 }
+
+ document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('select');
+    var instances = M.FormSelect.init(elems, options);
+  });
+
+  // Or with jQuery
+
+  $(document).ready(function(){
+    $('select').formSelect();
+  });
